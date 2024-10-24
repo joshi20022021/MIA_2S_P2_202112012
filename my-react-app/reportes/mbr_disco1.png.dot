@@ -1,0 +1,19 @@
+digraph G {
+	node [shape=plaintext];
+	table [label=<
+		<TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4">
+			<TR><TD COLSPAN="2" BGCOLOR="#4B0082"><FONT COLOR="white"><B>REPORTE DE MBR</B></FONT></TD></TR>
+			<TR><TD><B>Propiedad</B></TD><TD><B>Valor</B></TD></TR>
+			<TR><TD><B>mbr_tamano</B></TD><TD>52428800</TD></TR>
+			<TR><TD><B>mbr_fecha_creacion</B></TD><TD>17-09-2024 21:58:22</TD></TR>
+			<TR><TD><B>mbr_disk_signature</B></TD><TD>1380192340</TD></TR>
+		<TR><TD COLSPAN="2" BGCOLOR="#8A2BE2"><FONT COLOR="white"><B>Partición 1</B></FONT></TD></TR>
+		<TR><TD><B>part_status</B></TD><TD>48</TD></TR>
+		<TR><TD><B>part_type</B></TD><TD>P</TD></TR>
+		<TR><TD><B>part_fit</B></TD><TD>FF</TD></TR>
+		<TR><TD><B>part_start</B></TD><TD>20</TD></TR>
+		<TR><TD><B>part_size</B></TD><TD>20</TD></TR>
+		<TR><TD><B>part_name</B></TD><TD>Part1</TD></TR>
+		</TABLE>
+	>];
+}

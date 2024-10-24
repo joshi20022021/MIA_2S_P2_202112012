@@ -1,0 +1,33 @@
+# Crear 2 discos (50 MB y 75 MB)
+mkdisk -size=50 -unit=M -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco1.mia"
+mkdisk -size=75 -unit=M -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco2.mia"
+
+# Crear particiones en los discos
+fdisk -size=20 -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco1.mia" -name=Part1
+fdisk -size=30 -unit=M -type=P -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco2.mia" -name=Part2
+
+# Montar particiones en los discos
+mount -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco1.mia" -name=Part1  # ID: 112A
+mount -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco2.mia" -name=Part2  # ID: 212A
+
+# Formatear particiones usando los IDs generados en el montaje
+mkfs -type=ext2 -id=112A
+mkfs -type=ext2 -id=212A
+
+# Iniciar sesión con el usuario root en la partición montada (ID generado en el montaje)
+login -user=root -pass=123 -id=112A
+
+# Ejecutar algunos comandos (solo serán ejecutados si el usuario está logueado)
+
+# Mostrar el contenido de archivos utilizando el comando cat
+cat -file1="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/a.txt" -file2="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/b.txt"
+
+# Generar el reporte del MBR para el Disco1
+rep -id=112A -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/reportes/mbr_disco1.png" -name=mbr
+
+# Cerrar sesión
+logout
+
+# Eliminar los discos
+rmdisk -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco1.mia"
+rmdisk -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco2.mia"
