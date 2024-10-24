@@ -1,0 +1,22 @@
+# Crear discos más pequeños (entre 50 MB y 100 MB)
+mkdisk -size=50 -unit=M -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco1.mia"
+mkdisk -size=75 -unit=M -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco2.mia"
+mkdisk -size=100 -unit=M -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco3.mia"
+
+# Crear particiones
+fdisk -size=20 -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco1.mia" -name=Part1
+fdisk -size=30 -unit=M -type=P -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco2.mia" -name=Part2
+fdisk -size=50 -unit=M -type=E -fit=BF -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco3.mia" -name=Part3
+
+# Montar particiones
+mount -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco1.mia" -name=Part1
+mount -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco2.mia" -name=Part2
+mount -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco3.mia" -name=Part3
+
+# Formatear particiones
+mkfs -type=ext2 -id=121A
+mkfs -type=ext2 -id=122A
+mkfs -type=ext2 -id=123A
+
+# Eliminar disco
+rmdisk -path="/home/edgarjosiascanajquejay-202112012/Descargas/MIA_2S_P1_202112012/my-react-app/pruebasdiscos/Disco1.mia"
