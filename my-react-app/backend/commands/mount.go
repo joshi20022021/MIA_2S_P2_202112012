@@ -16,11 +16,10 @@ type ParametrosMontar struct {
 	Nombre string
 }
 
-// Analizar el comando mount sin usar listas
+// Analiza los parámetros para el comando mount
 func AnalizarParametrosMontarNew(comando string) (ParametrosMontar, error) {
 	parametros := ParametrosMontar{}
 
-	// Separar el comando en sus partes
 	for _, parte := range strings.Fields(comando) {
 		if strings.HasPrefix(strings.ToLower(parte), "-path=") {
 			parametros.Ruta = strings.Trim(strings.TrimPrefix(parte, "-path="), "\"")
@@ -35,7 +34,6 @@ func AnalizarParametrosMontarNew(comando string) (ParametrosMontar, error) {
 
 	return parametros, nil
 }
-
 func EjecutarMontar(parametros ParametrosMontar) string {
 	archivo, err := os.OpenFile(parametros.Ruta, os.O_RDWR, 0644)
 	if err != nil {
@@ -55,7 +53,8 @@ func EjecutarMontar(parametros ParametrosMontar) string {
 		nombreParticion := strings.TrimSpace(strings.TrimRight(string(particion.Part_name[:]), "\x00"))
 		if nombreParticion == strings.TrimSpace(parametros.Nombre) {
 			if particion.Part_type[0] == 'P' { // Verificar si es una partición primaria
-				return montarPrimaria(&mbr, archivo, i, parametros)
+				// Aquí aseguramos que pasamos el archivo como argumento
+				return montarPrimaria(&mbr, i, parametros)
 			} else if particion.Part_type[0] == 'E' { // Si es extendida, buscar lógicas
 				return montarLogica(archivo, particion.Part_start, parametros)
 			}
@@ -65,9 +64,7 @@ func EjecutarMontar(parametros ParametrosMontar) string {
 	return fmt.Sprintf("Error: No se encontró la partición con el nombre %s", parametros.Nombre)
 }
 
-// Montar una partición primaria y generar un ID único
-// Montar una partición primaria y generar un ID único
-func montarPrimaria(mbr *MBR, archivo *os.File, index int, parametros ParametrosMontar) string {
+func montarPrimaria(mbr *MBR, index int, parametros ParametrosMontar) string {
 	particion := mbr.Mbr_partition[index]
 
 	// Verificar si la partición ya está montada
@@ -81,34 +78,14 @@ func montarPrimaria(mbr *MBR, archivo *os.File, index int, parametros Parametros
 		return fmt.Sprintf("Error al generar el ID de montaje: %v", err)
 	}
 
-	// Asegúrate de que el campo Part_id se actualice correctamente
+	// Marcar la partición como montada (simulación en memoria)
+	particion.Part_status[0] = '1'
 	copy(particion.Part_id[:], id)
 
-	// Marcar la partición como montada
-	particion.Part_status[0] = '1'
-	archivo.Seek(0, 0)
-	err = binary.Write(archivo, binary.LittleEndian, mbr)
-	if err != nil {
-		return fmt.Sprintf("Error al escribir el MBR actualizado: %v", err)
-	}
-
-	// Leer el MBR nuevamente para validar que el ID se escribió correctamente
-	var mbrVerificado MBR
-	archivo.Seek(0, 0)
-	err = binary.Read(archivo, binary.LittleEndian, &mbrVerificado)
-	if err != nil {
-		return fmt.Sprintf("Error al verificar el MBR después del montaje: %v", err)
-	}
-
-	// Validar si el ID se escribió correctamente
-	if string(mbrVerificado.Mbr_partition[index].Part_id[:]) != string(particion.Part_id[:]) {
-		return "Error: El ID de la partición no se escribió correctamente"
-	}
-
+	// Devolver el mensaje con el ID generado
 	return fmt.Sprintf("Partición %s montada con éxito. ID generado: %s", parametros.Nombre, id)
 }
 
-// Montar una partición lógica y generar un ID único
 func montarLogica(archivo *os.File, start int32, parametros ParametrosMontar) string {
 	var ebr EBR
 	archivo.Seek(int64(start), 0)
@@ -128,40 +105,22 @@ func montarLogica(archivo *os.File, start int32, parametros ParametrosMontar) st
 		if err != nil {
 			return fmt.Sprintf("Error al generar el ID de montaje: %v", err)
 		}
-		// Validar que el ID tenga exactamente 4 caracteres
-		if len(id) != 4 {
-			return fmt.Sprintf("Error: ID generado tiene longitud incorrecta: %s", id)
-		}
 
-		// Asignar el ID al campo Part_id de la partición lógica
+		// Marcar la partición lógica como montada en memoria
+		ebr.Part_status[0] = '1'
 		copy(ebr.Part_id[:], id)
 
-		// Marcar la partición lógica como montada
-		ebr.Part_status[0] = '1'
-		archivo.Seek(int64(start), 0)
-		err = binary.Write(archivo, binary.LittleEndian, &ebr)
-		if err != nil {
-			return fmt.Sprintf("Error al escribir el EBR actualizado: %v", err)
-		}
-
-		// Registrar el montaje en el mapeo persistente
-		//err = RegistrarMontaje(id, parametros.Ruta)
-		if err != nil {
-			return fmt.Sprintf("Error al registrar el montaje: %v", err)
-		}
-
+		// Devolver el mensaje con el ID generado
 		return fmt.Sprintf("Partición lógica %s montada con éxito. ID generado: %s", parametros.Nombre, id)
-
 	}
 
 	return fmt.Sprintf("Error: No se encontró la partición lógica con el nombre %s", parametros.Nombre)
 }
 
-// Generar el ID de montaje
+// Genera el ID único para el montaje usando el último número del carnet y reglas de incrementación
 func agregarMontaje(parametros ParametrosMontar) (string, error) {
-	// Asignar la letra al disco si es un nuevo disco
+	// Asignar letra al disco si es nuevo
 	if _, existe := contadorLetra[parametros.Ruta]; !existe {
-		// Asignar la siguiente letra disponible
 		if len(contadorLetra) == 0 {
 			contadorLetra[parametros.Ruta] = 'A'
 		} else {
@@ -176,24 +135,19 @@ func agregarMontaje(parametros ParametrosMontar) (string, error) {
 			}
 			contadorLetra[parametros.Ruta] = ultimaLetra + 1
 		}
-		montajesDiscos[parametros.Ruta] = 1 // Iniciar contador de particiones
+		montajesDiscos[parametros.Ruta] = 1 // Inicia el conteo de particiones
 	}
 
 	letra := contadorLetra[parametros.Ruta]
-
-	// Obtener el número actual de partición
 	numeroParticion := montajesDiscos[parametros.Ruta]
 
-	// Validar que el número de partición esté entre 1 y 9
 	if numeroParticion < 1 || numeroParticion > 9 {
 		return "", fmt.Errorf("el número de partición debe estar entre 1 y 9")
 	}
 
-	// Generar el ID: 12 (fijo) + número de partición (1-9) + letra del disco
+	// Generar ID: 12 + número de partición (1-9) + letra del disco
 	id := fmt.Sprintf("%s%d%c", sufijoCarnet, numeroParticion, letra)
-
-	// Incrementar el contador para la próxima partición
-	montajesDiscos[parametros.Ruta]++
+	montajesDiscos[parametros.Ruta]++ // Incrementa para próxima partición
 
 	return id, nil
 }

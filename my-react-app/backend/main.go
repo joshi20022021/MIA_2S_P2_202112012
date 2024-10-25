@@ -122,15 +122,15 @@ func procesarLinea(linea string, numeroDisco *int) string {
 		salida = commands.EjecutarLogout()
 
 	case "cat":
-		if commands.VerificarSesionActiva() {
-			parametros, err := commands.AnalizarParametrosCat(linea)
+		parametros, err := commands.AnalizarParametrosCat(linea)
+		if err != nil {
+			salida = "Error: " + err.Error()
+		} else {
+			// Llamada corregida a EjecutarCat
+			salida, err = commands.EjecutarCat(parametros)
 			if err != nil {
 				salida = "Error: " + err.Error()
-			} else {
-				salida = commands.EjecutarCat(parametros, commands.UsuarioLogueado())
 			}
-		} else {
-			salida = "Error: Debes iniciar sesión para ejecutar este comando."
 		}
 
 	default:

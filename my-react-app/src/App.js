@@ -1,13 +1,20 @@
-import React from 'react';
-import './App.css';
-import FileManager from './components/FileManager';
+import React, { useState } from 'react';
+import FileManager from './components/FileManager'; // Importa el FileManager
+import Login from './components/Login'; // Importa el Login
 
-function App() {
+const App = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Estado de login
+
+  // Función que se ejecuta cuando el login es exitoso
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+  };
+
   return (
-    <div className="App">
-      <FileManager />
+    <div>
+      {isLoggedIn ? <FileManager /> : <Login onLoginSuccess={handleLoginSuccess} />}
     </div>
   );
-}
+};
 
 export default App;

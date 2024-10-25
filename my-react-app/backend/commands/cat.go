@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"os"
+	"io/ioutil"
 	"strings"
 )
 
@@ -10,69 +10,52 @@ type ParametrosCat struct {
 	Archivos []string
 }
 
-// Analizar el comando CAT para obtener los archivos
+// Analiza los parámetros del comando cat
 func AnalizarParametrosCat(comando string) (ParametrosCat, error) {
 	parametros := ParametrosCat{}
-	partes := strings.Split(comando, " ")
+	partes := strings.Fields(comando)
 
-	if len(partes) == 0 || partes[0] != "cat" {
-		return parametros, fmt.Errorf("comando no reconocido")
-	}
-
-	// Buscar los archivos pasados como parámetros
-	for _, parte := range partes[1:] {
-		if strings.HasPrefix(parte, "-file") {
-			file := strings.Trim(strings.Split(parte, "=")[1], "\"")
-			parametros.Archivos = append(parametros.Archivos, file)
+	for _, parte := range partes {
+		if strings.HasPrefix(strings.ToLower(parte), "-file") {
+			archivo := strings.Trim(strings.TrimPrefix(parte, "-file"), "=")
+			archivo = strings.Trim(archivo, "\"")
+			parametros.Archivos = append(parametros.Archivos, archivo)
 		}
 	}
 
 	if len(parametros.Archivos) == 0 {
-		return parametros, fmt.Errorf("al menos un archivo es obligatorio")
+		return parametros, fmt.Errorf("se debe especificar al menos un archivo con -file")
 	}
 
 	return parametros, nil
 }
 
-// Ejecutar el comando CAT para concatenar el contenido de los archivos
-func EjecutarCat(parametros ParametrosCat, usuario string) string {
-	if !VerificarSesionActiva() {
-		return "Error: No hay una sesión activa."
-	}
-
-	rutaParticion := obtenerRutaUsersTxt(particionMontada)
-	if rutaParticion == "" {
-		return fmt.Sprintf("Error: No se encontró la partición montada para el ID %s", particionMontada)
-	}
-
-	var resultado strings.Builder
-	for _, archivo := range parametros.Archivos {
-		contenido, err := leerArchivoEnParticion(rutaParticion, archivo)
-		if err != nil {
-			return fmt.Sprintf("Error al leer el archivo %s: %v", archivo, err)
-		}
-		// Concatenar contenido de archivos
-		resultado.WriteString(contenido + "\n")
-	}
-
-	return resultado.String()
+// Verifica si el usuario actual tiene permisos de lectura sobre el archivo (simulado)
+func VerificarPermisosLectura(archivo string) bool {
+	// Simulación: siempre devolver true por simplicidad.
+	// En una implementación real, debes verificar permisos basados en el sistema de archivos y el usuario logueado.
+	return true
 }
 
-// Leer el archivo desde la partición montada
-func leerArchivoEnParticion(rutaDisco, nombreArchivo string) (string, error) {
-	file, err := os.Open(rutaDisco)
-	if err != nil {
-		return "", fmt.Errorf("error al abrir el disco %s: %v", rutaDisco, err)
-	}
-	defer file.Close()
+// Ejecuta el comando cat para mostrar el contenido de uno o varios archivos
+func EjecutarCat(parametros ParametrosCat) (string, error) {
+	var contenidoFinal strings.Builder
 
-	// Ajustar el offset si es necesario según la estructura de la partición
-	offset := int64(2048)
-	buffer := make([]byte, 1024)
-	_, err = file.ReadAt(buffer, offset)
-	if err != nil {
-		return "", fmt.Errorf("error al leer el archivo %s: %v", nombreArchivo, err)
+	for _, archivo := range parametros.Archivos {
+		if !VerificarPermisosLectura(archivo) {
+			return "", fmt.Errorf("el usuario no tiene permiso de lectura sobre el archivo: %s", archivo)
+		}
+
+		contenido, err := ioutil.ReadFile(archivo)
+		if err != nil {
+			return "", fmt.Errorf("error al leer el archivo %s: %v", archivo, err)
+		}
+
+		// Concatenar contenido al resultado final
+		contenidoFinal.WriteString(fmt.Sprintf("Contenido del archivo %s:\n", archivo))
+		contenidoFinal.WriteString(string(contenido))
+		contenidoFinal.WriteString("\n\n") // Añadir una línea en blanco entre archivos
 	}
 
-	return string(buffer), nil
+	return contenidoFinal.String(), nil
 }

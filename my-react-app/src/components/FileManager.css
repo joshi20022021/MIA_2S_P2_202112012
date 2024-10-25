@@ -1,6 +1,17 @@
+/* Dark background for the entire body */
+body {
+  background-color: #121212;
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Main container for the file manager */
 .gestor-archivos {
   display: flex;
-  background: linear-gradient(135deg, #1c1f26, #282c34);
+  flex-direction: column;
+  background: #1e1e1e; /* Dark background for the file manager */
   color: white;
   padding: 30px;
   border-radius: 12px;
@@ -8,60 +19,69 @@
   min-width: 650px;
   width: 85%;
   margin: 40px auto;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); /* Slightly darker shadow */
   transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
 .gestor-archivos:hover {
   transform: scale(1.03);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7); /* Darker hover shadow */
 }
 
-/* Panel lateral para los botones */
-.panel-lateral {
+/* Labels should be properly positioned */
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #ccc; /* Slightly lighter text for labels */
+}
+
+/* Section for command input and label */
+.seccion-entrada, .seccion-salida {
+  margin-bottom: 20px;
+}
+
+textarea {
+  width: 100%;
+  height: 150px;
+  padding: 8px;
+  border-radius: 10px;
+  background-color: #2e2e2e; /* Darker textarea background */
+  border: none;
+  color: white;
+  font-size: 16px;
+  resize: none;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.4);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+textarea:focus {
+  background-color: #3a3a3a;
+  box-shadow: inset 0 2px 7px rgba(0, 0, 0, 0.5);
+}
+
+/* Flex layout for the buttons */
+.panel-botones {
   display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  align-items: center;
-  background-color: #3c4453;
-  padding: 35px;  /* Aumentamos el padding para hacer más grande el panel */
-  border-radius: 20px;
-  margin-right: 30px;
-  width: 250px;  /* Aumentamos el ancho del panel */
-  height: 600px;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s ease;
+  justify-content: space-between;
+  margin-bottom: 15px;
 }
 
-.panel-lateral:hover {
-  transform: scale(1.05);
-}
-
-.boton-cargar{
+/* Button styles */
+.boton-cargar, .boton-ejecutar {
+  padding: 15px;
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  padding: 20px 60px;  
-  margin: 20px 0; 
   font-size: 16px;
+  width: 48%;
+  text-align: center;
   transition: background-color 0.3s ease, transform 0.3s ease;
   box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
 }
 
-.boton-ejecutar {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  padding: 15px 90px;  
-  margin: 20px 0; 
-  font-size: 16px;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
-}
 .boton-ejecutar {
   background-color: #28a745;
   box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
@@ -69,70 +89,19 @@
 
 .boton-cargar:hover, .boton-ejecutar:hover {
   transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.5);
 }
 
-.panel-principal {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
+/* Adjust file input display */
+input[type="file"] {
+  display: none;
 }
 
-h1 {
+/* File input label styling */
+.file-input-display {
   text-align: center;
-  font-size: 28px;
-  margin-bottom: 25px;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: bold;
-  color: #e8e8e8;
-  animation: aparecerAbajo 1s ease;
-}
-
-.seccion-entrada, .seccion-salida {
-  margin-bottom: 30px;
-}
-
-label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: bold;
-  font-family: 'Roboto', sans-serif;
-}
-
-textarea {
-  width: 100%;
-  height: 180px;
-  padding: 12px;
-  border-radius: 10px;
-  background-color: #2e3238;
-  border: none;
-  color: white;
-  font-size: 16px;
-  font-family: 'Roboto', sans-serif;
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  resize: none;  
-}
-
-textarea:focus {
-  background-color: #3a3e45;
-  box-shadow: inset 0 2px 7px rgba(0, 0, 0, 0.5);
-}
-
-.seccion-salida textarea {
-  height: 180px;
-  resize: none;  
-}
-
-/* Animaciones */
-@keyframes aparecerAbajo {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  color: #ddd; /* Lighter text color */
+  margin-bottom: 20px;
 }
 
 /* responsive */
@@ -141,19 +110,16 @@ textarea:focus {
     flex-direction: column;
   }
 
-  .panel-lateral {
+  .panel-botones {
+    flex-direction: column;
+  }
+
+  .boton-cargar, .boton-ejecutar {
     width: 100%;
-    margin-bottom: 20px;
-    height: auto;
-    padding: 20px;
+    margin-bottom: 10px;
   }
 
   textarea {
     height: 140px;
-  }
-
-  .boton-cargar, .boton-ejecutar {
-    padding: 10px;
-    font-size: 14px;
   }
 }
