@@ -7,9 +7,18 @@ import (
 	"strings"
 )
 
-var contadorLetra = make(map[string]rune) // Controla la letra para cada disco montado
-var montajesDiscos = map[string]int{}     // Controla el número de particiones montadas por disco
-const sufijoCarnet = "12"                 // Últimos dos dígitos del carnet
+var contadorLetra = make(map[string]rune)                   // Controla la letra para cada disco montado
+var montajesDiscos = map[string]int{}                       // Controla el número de particiones montadas por disco
+var particionesMontadas = make(map[string]ParticionMontada) // Mapa global de particiones montadas
+const sufijoCarnet = "12"                                   // Últimos dos dígitos del carnet
+
+// Estructura para almacenar la información de una partición montada
+type ParticionMontada struct {
+	Id     string
+	Ruta   string
+	Inicio int32 // Inicio de la partición
+	Tipo   byte  // Tipo de partición (P para primaria, L para lógica)
+}
 
 type ParametrosMontar struct {
 	Ruta   string
@@ -34,6 +43,7 @@ func AnalizarParametrosMontarNew(comando string) (ParametrosMontar, error) {
 
 	return parametros, nil
 }
+
 func EjecutarMontar(parametros ParametrosMontar) string {
 	archivo, err := os.OpenFile(parametros.Ruta, os.O_RDWR, 0644)
 	if err != nil {
@@ -53,7 +63,6 @@ func EjecutarMontar(parametros ParametrosMontar) string {
 		nombreParticion := strings.TrimSpace(strings.TrimRight(string(particion.Part_name[:]), "\x00"))
 		if nombreParticion == strings.TrimSpace(parametros.Nombre) {
 			if particion.Part_type[0] == 'P' { // Verificar si es una partición primaria
-				// Aquí aseguramos que pasamos el archivo como argumento
 				return montarPrimaria(&mbr, i, parametros)
 			} else if particion.Part_type[0] == 'E' { // Si es extendida, buscar lógicas
 				return montarLogica(archivo, particion.Part_start, parametros)
@@ -82,10 +91,18 @@ func montarPrimaria(mbr *MBR, index int, parametros ParametrosMontar) string {
 	particion.Part_status[0] = '1'
 	copy(particion.Part_id[:], id)
 
-	// Devolver el mensaje con el ID generado
+	// Agregar la partición montada al mapa global
+	particionesMontadas[id] = ParticionMontada{
+		Id:     id,
+		Ruta:   parametros.Ruta,
+		Inicio: particion.Part_start,
+		Tipo:   particion.Part_type[0],
+	}
+
 	return fmt.Sprintf("Partición %s montada con éxito. ID generado: %s", parametros.Nombre, id)
 }
 
+// Montar una partición lógica y generar un ID único
 func montarLogica(archivo *os.File, start int32, parametros ParametrosMontar) string {
 	var ebr EBR
 	archivo.Seek(int64(start), 0)
@@ -110,7 +127,14 @@ func montarLogica(archivo *os.File, start int32, parametros ParametrosMontar) st
 		ebr.Part_status[0] = '1'
 		copy(ebr.Part_id[:], id)
 
-		// Devolver el mensaje con el ID generado
+		// Agregar la partición montada al mapa global
+		particionesMontadas[id] = ParticionMontada{
+			Id:     id,
+			Ruta:   parametros.Ruta,
+			Inicio: ebr.Part_start,
+			Tipo:   'L',
+		}
+
 		return fmt.Sprintf("Partición lógica %s montada con éxito. ID generado: %s", parametros.Nombre, id)
 	}
 

@@ -133,6 +133,22 @@ func procesarLinea(linea string, numeroDisco *int) string {
 			}
 		}
 
+	case "mkgrp":
+		parametros, err := commands.AnalizarParametrosMkgrp(linea)
+		if err != nil {
+			salida = "Error: " + err.Error()
+		} else {
+			salida = commands.EjecutarMkgrp(parametros)
+		}
+
+	case "rmgrp":
+		parametros, err := commands.AnalizarParametrosRmgrp(linea)
+		if err != nil {
+			salida = "Error: " + err.Error()
+		} else {
+			salida = commands.EjecutarRmgrp(parametros)
+		}
+
 	default:
 		salida = "Comando no reconocido"
 	}

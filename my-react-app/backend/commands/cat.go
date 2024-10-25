@@ -1,8 +1,9 @@
 package commands
 
 import (
+	"bufio"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -10,52 +11,54 @@ type ParametrosCat struct {
 	Archivos []string
 }
 
-// Analiza los parámetros del comando cat
+// Analizar los parámetros del comando cat
 func AnalizarParametrosCat(comando string) (ParametrosCat, error) {
 	parametros := ParametrosCat{}
-	partes := strings.Fields(comando)
 
-	for _, parte := range partes {
+	for _, parte := range strings.Fields(comando) {
 		if strings.HasPrefix(strings.ToLower(parte), "-file") {
-			archivo := strings.Trim(strings.TrimPrefix(parte, "-file"), "=")
-			archivo = strings.Trim(archivo, "\"")
-			parametros.Archivos = append(parametros.Archivos, archivo)
+			parametro := strings.SplitN(parte, "=", 2)
+			if len(parametro) == 2 {
+				parametros.Archivos = append(parametros.Archivos, strings.Trim(parametro[1], "\""))
+			}
 		}
 	}
 
 	if len(parametros.Archivos) == 0 {
-		return parametros, fmt.Errorf("se debe especificar al menos un archivo con -file")
+		return parametros, fmt.Errorf("no se especificaron archivos para el comando cat")
 	}
 
 	return parametros, nil
 }
 
-// Verifica si el usuario actual tiene permisos de lectura sobre el archivo (simulado)
-func VerificarPermisosLectura(archivo string) bool {
-	// Simulación: siempre devolver true por simplicidad.
-	// En una implementación real, debes verificar permisos basados en el sistema de archivos y el usuario logueado.
-	return true
-}
-
-// Ejecuta el comando cat para mostrar el contenido de uno o varios archivos
+// Ejecuta el comando cat para leer múltiples archivos
 func EjecutarCat(parametros ParametrosCat) (string, error) {
-	var contenidoFinal strings.Builder
+	var contenido strings.Builder
 
-	for _, archivo := range parametros.Archivos {
-		if !VerificarPermisosLectura(archivo) {
-			return "", fmt.Errorf("el usuario no tiene permiso de lectura sobre el archivo: %s", archivo)
+	for _, ruta := range parametros.Archivos {
+		// Comprobar si el archivo existe antes de intentar abrirlo
+		if _, err := os.Stat(ruta); os.IsNotExist(err) {
+			return "", fmt.Errorf("error: el archivo %s no existe o la ruta es incorrecta", ruta)
 		}
 
-		contenido, err := ioutil.ReadFile(archivo)
+		// Intentar abrir el archivo
+		file, err := os.Open(ruta)
 		if err != nil {
-			return "", fmt.Errorf("error al leer el archivo %s: %v", archivo, err)
+			return "", fmt.Errorf("no se pudo abrir el archivo %s: %v", ruta, err)
+		}
+		defer file.Close()
+
+		// Leer el contenido del archivo línea por línea
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			contenido.WriteString(scanner.Text() + "\n")
 		}
 
-		// Concatenar contenido al resultado final
-		contenidoFinal.WriteString(fmt.Sprintf("Contenido del archivo %s:\n", archivo))
-		contenidoFinal.WriteString(string(contenido))
-		contenidoFinal.WriteString("\n\n") // Añadir una línea en blanco entre archivos
+		if err := scanner.Err(); err != nil {
+			return "", fmt.Errorf("error al leer el archivo %s: %v", ruta, err)
+		}
+		contenido.WriteString("\n") // Separador entre archivos
 	}
 
-	return contenidoFinal.String(), nil
+	return contenido.String(), nil
 }
