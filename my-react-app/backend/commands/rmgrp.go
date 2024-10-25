@@ -1,60 +1,15 @@
 package commands
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strings"
 )
 
-// obtenerRutaUsersTxt devuelve la ruta virtual de users.txt dentro de la partición montada
-func obtenerRutaUsersTxt(particion ParticionMontada) string {
-	// Usa un directorio simulado en la partición
-	return fmt.Sprintf("%s_users.txt", particion.Ruta)
-}
-
-// Estructura de parámetros para el comando rmgrp
 type ParametrosRmgrp struct {
 	Nombre string
 }
 
-// leerUsersTxtDesdeDisco lee el contenido del archivo users.txt de una partición específica
-func leerUsersTxtDesdeDisco(ruta string) (string, error) {
-	file, err := os.Open(ruta)
-	if err != nil {
-		return "", fmt.Errorf("no se pudo abrir el archivo %s: %v", ruta, err)
-	}
-	defer file.Close()
-
-	content := new(strings.Builder)
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		content.WriteString(scanner.Text() + "\n")
-	}
-
-	if err := scanner.Err(); err != nil {
-		return "", fmt.Errorf("error al leer %s: %v", ruta, err)
-	}
-	return content.String(), nil
-}
-
-// escribirUsersTxtEnDisco escribe el contenido en users.txt dentro de la partición montada
-func escribirUsersTxtEnDisco(ruta string, contenido string) error {
-	file, err := os.OpenFile(ruta, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		return fmt.Errorf("no se pudo abrir el archivo %s para escritura: %v", ruta, err)
-	}
-	defer file.Close()
-
-	_, err = file.WriteString(contenido)
-	if err != nil {
-		return fmt.Errorf("error al escribir en %s: %v", ruta, err)
-	}
-
-	return nil
-}
-
-// Analizar el comando rmgrp
+// Analizar los parámetros del comando rmgrp
 func AnalizarParametrosRmgrp(comando string) (ParametrosRmgrp, error) {
 	parametros := ParametrosRmgrp{}
 
@@ -70,6 +25,7 @@ func AnalizarParametrosRmgrp(comando string) (ParametrosRmgrp, error) {
 
 	return parametros, nil
 }
+
 func EjecutarRmgrp(parametros ParametrosRmgrp) string {
 	if !VerificarSesionActiva() || UsuarioLogueado() != "root" {
 		return "Error: solo el usuario root puede eliminar grupos o no hay sesión activa"

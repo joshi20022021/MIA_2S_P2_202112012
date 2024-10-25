@@ -11,7 +11,7 @@ type ParametrosCat struct {
 	Archivos []string
 }
 
-// Analizar los parámetros del comando cat
+// Analiza los parámetros de cat
 func AnalizarParametrosCat(comando string) (ParametrosCat, error) {
 	parametros := ParametrosCat{}
 
@@ -36,28 +36,24 @@ func EjecutarCat(parametros ParametrosCat) (string, error) {
 	var contenido strings.Builder
 
 	for _, ruta := range parametros.Archivos {
-		// Comprobar si el archivo existe antes de intentar abrirlo
-		if _, err := os.Stat(ruta); os.IsNotExist(err) {
-			return "", fmt.Errorf("error: el archivo %s no existe o la ruta es incorrecta", ruta)
+		if ruta == "/users.txt" {
+			ruta = obtenerRutaUsersTxt(ParticionActiva())
 		}
 
-		// Intentar abrir el archivo
 		file, err := os.Open(ruta)
 		if err != nil {
-			return "", fmt.Errorf("no se pudo abrir el archivo %s: %v", ruta, err)
+			return "", fmt.Errorf("error al abrir %s: %v", ruta, err)
 		}
 		defer file.Close()
 
-		// Leer el contenido del archivo línea por línea
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			contenido.WriteString(scanner.Text() + "\n")
 		}
-
 		if err := scanner.Err(); err != nil {
-			return "", fmt.Errorf("error al leer el archivo %s: %v", ruta, err)
+			return "", fmt.Errorf("error al leer %s: %v", ruta, err)
 		}
-		contenido.WriteString("\n") // Separador entre archivos
+		contenido.WriteString("\n")
 	}
 
 	return contenido.String(), nil
