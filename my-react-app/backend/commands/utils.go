@@ -57,3 +57,27 @@ func escribirUsersTxtEnDisco(ruta string, contenido string) error {
 
 	return nil
 }
+
+// Verifica si el grupo existe y está activo en users.txt
+func grupoExisteActivo(grupo string, contenido string) bool {
+	lineas := strings.Split(contenido, "\n")
+	for _, linea := range lineas {
+		datos := strings.Split(linea, ",")
+		if len(datos) >= 3 && strings.TrimSpace(datos[1]) == "G" && strings.TrimSpace(datos[2]) == grupo && strings.TrimSpace(datos[0]) != "0" {
+			return true
+		}
+	}
+	return false
+}
+
+// Verifica si el usuario existe y está activo en users.txt, sin importar el grupo
+func usuarioExisteActivo(usuario string, contenido string) bool {
+	lineas := strings.Split(contenido, "\n")
+	for _, linea := range lineas {
+		datos := strings.Split(linea, ",")
+		if len(datos) >= 5 && strings.TrimSpace(datos[1]) == "U" && strings.TrimSpace(datos[3]) == usuario && strings.TrimSpace(datos[0]) != "0" {
+			return true
+		}
+	}
+	return false
+}

@@ -126,7 +126,6 @@ func procesarLinea(linea string, numeroDisco *int) string {
 		if err != nil {
 			salida = "Error: " + err.Error()
 		} else {
-			// Llamada corregida a EjecutarCat
 			salida, err = commands.EjecutarCat(parametros)
 			if err != nil {
 				salida = "Error: " + err.Error()
@@ -147,6 +146,29 @@ func procesarLinea(linea string, numeroDisco *int) string {
 			salida = "Error: " + err.Error()
 		} else {
 			salida = commands.EjecutarRmgrp(parametros)
+		}
+
+	case "mkusr": // Nueva sección para el comando mkusr
+		parametros, err := commands.AnalizarParametrosMkusr(linea)
+		if err != nil {
+			salida = "Error: " + err.Error()
+		} else {
+			salida = commands.EjecutarMkusr(parametros)
+		}
+	case "chgrp":
+		parametros, err := commands.AnalizarParametrosChgrp(linea)
+		if err != nil {
+			salida = "Error: " + err.Error()
+		} else {
+			salida = commands.EjecutarChgrp(parametros)
+		}
+
+	case "rmusr":
+		parametros, err := commands.AnalizarParametrosRmusr(linea)
+		if err != nil {
+			salida = "Error: " + err.Error()
+		} else {
+			salida = commands.EjecutarRmusr(parametros)
 		}
 
 	default:

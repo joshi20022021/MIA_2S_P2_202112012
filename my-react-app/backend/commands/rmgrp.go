@@ -25,7 +25,6 @@ func AnalizarParametrosRmgrp(comando string) (ParametrosRmgrp, error) {
 
 	return parametros, nil
 }
-
 func EjecutarRmgrp(parametros ParametrosRmgrp) string {
 	if !VerificarSesionActiva() || UsuarioLogueado() != "root" {
 		return "Error: solo el usuario root puede eliminar grupos o no hay sesión activa"
